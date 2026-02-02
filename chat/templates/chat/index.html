@@ -1,0 +1,57 @@
+{% extends 'chat/base.html' %}
+
+{% block content %}
+<h1>Nexus Grid</h1>
+<p style="color: var(--text-muted); margin-bottom: 30px;">Welcome, <strong>{{ user.username }}</strong>! Choose a portal
+    to begin.</p>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+    <a href="/general/" class="room-card">
+        <div
+            style="background: rgba(255,255,255,0.03); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); text-align: center;">
+            <h3 style="margin-bottom: 10px;">General</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Open discussions</span>
+        </div>
+    </a>
+    <a href="/django/" class="room-card">
+        <div
+            style="background: rgba(255,255,255,0.03); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); text-align: center;">
+            <h3 style="margin-bottom: 10px;">Django</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Python & Web Dev</span>
+        </div>
+    </a>
+</div>
+
+<div
+    style="margin-top: 40px; padding: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 20px;">
+    <h3>Create New Portal</h3>
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <input type="text" id="new-room-name" placeholder="Portal ID (e.g. music, coding)"
+            style="flex: 1; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white;">
+        <button onclick="joinRoom()" class="btn" style="margin-top: 0;">Open Portal</button>
+    </div>
+</div>
+
+<script>
+    function joinRoom() {
+        const name = document.getElementById('new-room-name').value.trim();
+        if (name) {
+            window.location.pathname = '/' + name + '/';
+        }
+    }
+</script>
+
+<div style="margin-top: 40px; text-align: center;">
+    <a href="{% url 'logout' %}" style="color: #ef4444; font-size: 0.9rem;">Disconnect from Nexus Grid</a>
+</div>
+
+<style>
+    .room-card {
+        transition: transform 0.3s;
+    }
+
+    .room-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}

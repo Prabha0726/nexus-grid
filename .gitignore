@@ -1,0 +1,10 @@
+*.pyc
+*__pycache__*
+db.sqlite3
+.env
+staticfiles/
+.vscode/
+venv/
+django_chat_app/venv/
+node_modules/
+.DS_Store

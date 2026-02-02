@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room: {{ room_name }} - Nexus Grid</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            height: 100vh;
+            display: flex;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: rgba(0, 0, 0, 0.2);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h1 {
+            font-size: 1.25rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #chat-log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            align-self: flex-start;
+            position: relative;
+        }
+
+        .message.own {
+            background: var(--primary);
+            align-self: flex-end;
+        }
+
+        .user-tag {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .own .user-tag {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .chat-input-area {
+            padding: 24px 30px;
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            padding: 14px 20px;
+            border-radius: 14px;
+            color: white;
+            outline: none;
+        }
+
+        button {
+            background: var(--primary);
+            border: none;
+            padding: 0 24px;
+            border-radius: 14px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .online-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #6366f1, #c084fc);
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2 class="online-title">Active Transmissions</h2>
+        <div id="user-list">
+            <!-- Online users list -->
+        </div>
+    </div>
+
+    <div class="main-chat">
+        <div class="chat-header">
+            <div>
+                <h1># {{ room_name }}</h1>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Secure Channel Established</p>
+            </div>
+            <a href="/" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Disconnect</a>
+        </div>
+        <div id="chat-log"></div>
+        <div class="chat-input-area">
+            <input id="chat-message-input" type="text" placeholder="Type a message..." autofocus>
+            <button id="chat-message-submit">Transmit</button>
+        </div>
+    </div>
+
+    <script>
+        const roomName = "{{ room_name }}";
+        const userName = "{{ user.username }}";
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const chatSocket = new WebSocket(
+            wsScheme + '://' + window.location.host + '/ws/chat/' + roomName + '/'
+        );
+
+        chatSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+
+            if (data.type === 'chat_message') {
+                const chatLog = document.querySelector('#chat-log');
+                const messageDiv = document.createElement('div');
+                const parts = data.message.split(': ');
+                const sender = parts[0];
+                const content = parts.slice(1).join(': ');
+
+                const isOwn = sender === userName;
+                messageDiv.className = 'message' + (isOwn ? ' own' : '');
+                messageDiv.innerHTML = `
+                    <div class="user-tag">${sender}</div>
+                    <div class="content">${content}</div>
+                `;
+
+                chatLog.appendChild(messageDiv);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+            else if (data.type === 'user_list') {
+                const userList = document.querySelector('#user-list');
+                userList.innerHTML = '';
+                data.users.forEach(user => {
+                    const userDiv = document.createElement('div');
+                    userDiv.className = 'user-item';
+                    userDiv.innerHTML = `
+                        <div class="avatar" style="filter: hue-rotate(${user.length * 40}deg)"></div>
+                        <span>${user} ${user === userName ? '(You)' : ''}</span>
+                    `;
+                    userList.appendChild(userDiv);
+                });
+            }
+        };
+
+        document.querySelector('#chat-message-input').onkeyup = function (e) {
+            if (e.keyCode === 13) document.querySelector('#chat-message-submit').click();
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function (e) {
+            const inputDom = document.querySelector('#chat-message-input');
+            const message = inputDom.value;
+            if (message.trim()) {
+                chatSocket.send(JSON.stringify({ 'message': message }));
+                inputDom.value = '';
+            }
+        };
+    </script>
+</body>
+
+</html>

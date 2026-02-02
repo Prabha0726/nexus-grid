@@ -1,0 +1,33 @@
+{% extends 'chat/base.html' %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto;">
+    <h1 style="text-align: center;">Join Nexus Grid</h1>
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">Create your identity to access the
+        global transmission network.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 0.9rem;">{{ field.label }}</label>
+            <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}"
+                style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: white;"
+                required>
+            {% if field.help_text %}
+            <small style="display: block; color: var(--text-muted); margin-top: 5px; font-size: 0.75rem;">{{
+                field.help_text }}</small>
+            {% endif %}
+            {% for error in field.errors %}
+            <small style="display: block; color: #ef4444; margin-top: 5px;">{{ error }}</small>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Register Identity</button>
+    </form>
+
+    <div style="margin-top: 20px; text-align: center; color: var(--text-muted); font-size: 0.8rem;">
+        Already have an identity? <a href="{% url 'login' %}">Log In</a>
+    </div>
+</div>
+{% endblock %}
