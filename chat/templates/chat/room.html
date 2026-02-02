@@ -82,11 +82,33 @@
             background: rgba(255, 255, 255, 0.08);
             align-self: flex-start;
             position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message.own {
             background: var(--primary);
             align-self: flex-end;
+        }
+
+        .message.system {
+            align-self: center;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding: 6px 14px;
         }
 
         .user-tag {
@@ -98,6 +120,14 @@
 
         .own .user-tag {
             color: rgba(255, 255, 255, 0.7);
+        }
+
+        #typing-indicator {
+            height: 20px;
+            padding: 0 30px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
         }
 
         .chat-input-area {
@@ -115,6 +145,12 @@
             border-radius: 14px;
             color: white;
             outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         button {
@@ -125,6 +161,12 @@
             color: white;
             font-weight: 600;
             cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: var(--primary-hover);
         }
 
         .online-title {
@@ -170,6 +212,7 @@
             <a href="/" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">Disconnect</a>
         </div>
         <div id="chat-log"></div>
+        <div id="typing-indicator"></div>
         <div class="chat-input-area">
             <input id="chat-message-input" type="text" placeholder="Type a message..." autofocus>
             <button id="chat-message-submit">Transmit</button>
@@ -183,6 +226,9 @@
         const chatSocket = new WebSocket(
             wsScheme + '://' + window.location.host + '/ws/chat/' + roomName + '/'
         );
+
+        let typingTimeout = null;
+        let isCurrentlyTyping = false;
 
         chatSocket.onmessage = function (e) {
             const data = JSON.parse(e.data);
@@ -204,6 +250,22 @@
                 chatLog.appendChild(messageDiv);
                 chatLog.scrollTop = chatLog.scrollHeight;
             }
+            else if (data.type === 'system') {
+                const chatLog = document.querySelector('#chat-log');
+                const sysDiv = document.createElement('div');
+                sysDiv.className = 'message system';
+                sysDiv.textContent = data.message;
+                chatLog.appendChild(sysDiv);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+            else if (data.type === 'typing') {
+                const indicator = document.querySelector('#typing-indicator');
+                if (data.is_typing && data.user !== userName) {
+                    indicator.textContent = `${data.user} is encoding...`;
+                } else {
+                    indicator.textContent = '';
+                }
+            }
             else if (data.type === 'user_list') {
                 const userList = document.querySelector('#user-list');
                 userList.innerHTML = '';
@@ -219,16 +281,32 @@
             }
         };
 
-        document.querySelector('#chat-message-input').onkeyup = function (e) {
+        const inputField = document.querySelector('#chat-message-input');
+
+        inputField.oninput = () => {
+            if (!isCurrentlyTyping) {
+                isCurrentlyTyping = true;
+                chatSocket.send(JSON.stringify({ 'type': 'typing', 'is_typing': true }));
+            }
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                isCurrentlyTyping = false;
+                chatSocket.send(JSON.stringify({ 'type': 'typing', 'is_typing': false }));
+            }, 1500);
+        };
+
+        inputField.onkeyup = function (e) {
             if (e.keyCode === 13) document.querySelector('#chat-message-submit').click();
         };
 
         document.querySelector('#chat-message-submit').onclick = function (e) {
-            const inputDom = document.querySelector('#chat-message-input');
-            const message = inputDom.value;
+            const message = inputField.value;
             if (message.trim()) {
-                chatSocket.send(JSON.stringify({ 'message': message }));
-                inputDom.value = '';
+                chatSocket.send(JSON.stringify({ 'type': 'chat_message', 'message': message }));
+                inputField.value = '';
+                // Clear typing status immediately
+                isCurrentlyTyping = false;
+                chatSocket.send(JSON.stringify({ 'type': 'typing', 'is_typing': false }));
             }
         };
     </script>

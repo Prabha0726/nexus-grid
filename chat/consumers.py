@@ -29,6 +29,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         connected_users[self.room_name].add(self.user.username)
 
         await self.broadcast_user_list()
+        
+        # Broadcast user joined
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'user_status',
+                'message': f"{self.user.username} has joined the grid.",
+                'status': 'joined'
+            }
+        )
 
         # Send message history
         messages = await self.get_messages(self.room_name)
@@ -52,21 +62,53 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         await self.broadcast_user_list()
 
-    async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        
-        # Save to DB (async)
-        await self.save_message(self.user, self.room_name, message)
-
-        # Broadcast
+        # Broadcast user left
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'chat_message',
-                'message': f"{self.user.username}: {message}"
+                'type': 'user_status',
+                'message': f"{self.user.username} has disconnected.",
+                'status': 'left'
             }
         )
+
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        message_type = data.get('type', 'chat_message')
+
+        if message_type == 'typing':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'typing_status',
+                    'user': self.user.username,
+                    'is_typing': data.get('is_typing', False)
+                }
+            )
+        elif message_type == 'chat_message':
+            message = data['message']
+            await self.save_message(self.user, self.room_name, message)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': f"{self.user.username}: {message}"
+                }
+            )
+
+    async def typing_status(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'typing',
+            'user': event['user'],
+            'is_typing': event['is_typing']
+        }))
+
+    async def user_status(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'system',
+            'message': event['message'],
+            'status': event['status']
+        }))
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
