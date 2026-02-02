@@ -2,8 +2,11 @@
 
 {% block content %}
 <h1>Nexus Grid</h1>
-<p style="color: var(--text-muted); margin-bottom: 30px;">Welcome, <strong>{{ user.username }}</strong>! Choose a portal
-    to begin.</p>
+<p style="color: var(--text-muted); margin-bottom: 30px; display: flex; align-items: center; gap: 10px;">
+    <span
+        style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(45deg, #6366f1, #c084fc); filter: hue-rotate({{ user.username|length }}0deg);"></span>
+    Welcome, <strong>{{ user.username }}</strong>! Choose a portal to begin.
+</p>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
     <a href="/general/" class="room-card">

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: nexus-grid
+    env: docker
+    plan: free
+    region: oregon 
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PORT
+        value: 10000
