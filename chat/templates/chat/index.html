@@ -1,39 +1,151 @@
 {% extends 'chat/base.html' %}
 
 {% block content %}
-<h1>Nexus Grid</h1>
-<p style="color: var(--text-muted); margin-bottom: 30px; display: flex; align-items: center; gap: 10px;">
-    <span
-        style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(45deg, #6366f1, #c084fc); filter: hue-rotate({{ user.username|length }}0deg);"></span>
-    Welcome, <strong>{{ user.username }}</strong>! Choose a portal to begin.
-</p>
+<div class="hero-section" style="text-align: center; margin-bottom: 40px; animation: slideDown 0.8s ease-out;">
+    <h1 style="font-size: 3.5rem; margin-bottom: 10px;">Nexus Grid</h1>
+    <div class="transmission-badge"
+        style="display: inline-block; padding: 4px 12px; background: rgba(99, 102, 241, 0.2); border: 1px solid var(--primary); border-radius: 20px; font-size: 0.8rem; color: var(--primary); margin-bottom: 20px;">
+        STATUS: ENCRYPTED TRANSMISSION ACTIVE
+    </div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-    <a href="/general/" class="room-card">
-        <div
-            style="background: rgba(255,255,255,0.03); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); text-align: center;">
-            <h3 style="margin-bottom: 10px;">General</h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Open discussions</span>
-        </div>
-    </a>
-    <a href="/django/" class="room-card">
-        <div
-            style="background: rgba(255,255,255,0.03); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); text-align: center;">
-            <h3 style="margin-bottom: 10px;">Django</h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">Python & Web Dev</span>
-        </div>
-    </a>
+    <p
+        style="color: var(--text-muted); margin-bottom: 30px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <span class="avatar-sm"
+            style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(45deg, #6366f1, #c084fc); --rot: {{ user.username|length }}0deg; filter: hue-rotate(var(--rot));"></span>
+        Authenticated as <strong>{{ user.username }}</strong>
+    </p>
 </div>
 
-<div
-    style="margin-top: 40px; padding: 24px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 20px;">
-    <h3>Create New Portal</h3>
-    <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <input type="text" id="new-room-name" placeholder="Portal ID (e.g. music, coding)"
-            style="flex: 1; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white;">
-        <button onclick="joinRoom()" class="btn" style="margin-top: 0;">Open Portal</button>
+<div class="grid-layout" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+    <!-- Featured Portals -->
+    <a href="/general/" class="portal-card">
+        <div class="card-inner">
+            <div class="portal-icon">Ω</div>
+            <h3>General Grid</h3>
+            <p>Main transmission channel for global sync.</p>
+            <span class="pulse-dot"></span>
+        </div>
+    </a>
+
+    <a href="/django/" class="portal-card">
+        <div class="card-inner">
+            <div class="portal-icon">π</div>
+            <h3>Dev Protocol</h3>
+            <p>Advanced discussions on Python & Neural Logic.</p>
+        </div>
+    </a>
+
+    <!-- Custom Portal Creator -->
+    <div class="portal-card creator">
+        <div class="card-inner">
+            <h3>Open New Portal</h3>
+            <p>Establish a private frequency.</p>
+            <div style="display: flex; gap: 8px; margin-top: 15px;">
+                <input type="text" id="new-room-name" placeholder="Frequency ID..."
+                    style="flex: 1; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: white; font-size: 0.9rem;">
+                <button onclick="joinRoom()" class="btn-icon">➔</button>
+            </div>
+        </div>
     </div>
 </div>
+
+<div style="margin-top: 60px; text-align: center; opacity: 0.6;">
+    <a href="{% url 'logout' %}"
+        style="color: #ef4444; font-size: 0.9rem; text-decoration: none; border-bottom: 1px solid transparent; transition: 0.3s;">TERMINATE
+        CONNECTION</a>
+</div>
+
+<style>
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .portal-card {
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card-inner {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 30px;
+        border-radius: 24px;
+        border: 1px solid var(--glass-border);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .portal-card:hover {
+        transform: translateY(-8px);
+    }
+
+    .portal-card:hover .card-inner {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: var(--primary);
+    }
+
+    .portal-icon {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: var(--primary);
+    }
+
+    .pulse-dot {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 8px;
+        height: 8px;
+        background: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #10b981;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        50% {
+            transform: scale(1.5);
+            opacity: 0.5;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .btn-icon {
+        background: var(--primary);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: var(--primary) !important;
+    }
+</style>
 
 <script>
     function joinRoom() {
@@ -43,18 +155,4 @@
         }
     }
 </script>
-
-<div style="margin-top: 40px; text-align: center;">
-    <a href="{% url 'logout' %}" style="color: #ef4444; font-size: 0.9rem;">Disconnect from Nexus Grid</a>
-</div>
-
-<style>
-    .room-card {
-        transition: transform 0.3s;
-    }
-
-    .room-card:hover {
-        transform: translateY(-5px);
-    }
-</style>
 {% endblock %}

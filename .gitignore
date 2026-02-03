@@ -5,6 +5,7 @@ db.sqlite3
 staticfiles/
 .vscode/
 venv/
+.venv/
 django_chat_app/venv/
 node_modules/
 .DS_Store

@@ -40,10 +40,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
 
         .container {
-            width: 90%;
+            width: 100%;
             max-width: 800px;
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
@@ -51,6 +52,19 @@
             border-radius: 24px;
             padding: 40px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin: auto;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
         }
 
         h1 {
