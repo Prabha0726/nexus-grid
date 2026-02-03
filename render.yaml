@@ -6,7 +6,7 @@ services:
     region: oregon 
     envVars:
       - key: DEBUG
-        value: "False"
+        value: "True"
       - key: SECRET_KEY
         generateValue: true
       - key: PORT
